@@ -112,6 +112,7 @@ input,select{font:inherit;font-size:16px;color:var(--ink)}
 
 <script>
 /* ===================== DATOS BASE ===================== */
+const APP_VERSION='2026-11-09.2';
 const KEY='gymtracker.v1';
 const DAYS=['L','M','X','J','V','S','D'];
 const DAY_NAMES=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
@@ -514,7 +515,8 @@ function routinesHtml(){
       <button class="btn ghost full" data-a="importPick" style="margin-top:8px">Importar copia</button>
       <button class="btn ghost full" data-a="loadSample" style="margin-top:8px">Cargar datos de ejemplo</button>
       <button class="btn ghost full danger" data-a="delSample" style="margin-top:8px">Borrar datos de ejemplo</button>
-    </div>`;
+    </div>
+    <p class="muted" style="font-size:12px;text-align:center;margin-top:14px">Versión ${APP_VERSION}</p>`;
 }
 function editorHtml(){
   const d=ui.editor.draft;
@@ -764,6 +766,22 @@ document.addEventListener('focusout',()=>setTimeout(()=>{if(!isField(document.ac
 window.visualViewport?.addEventListener('resize',()=>{if(!isField(document.activeElement)) resetScroll();});
 window.addEventListener('scroll',()=>{if(!isField(document.activeElement)) resetScroll();});
 
+/* Actualización automática: si en GitHub hay una versión nueva, recarga (sin tocar los datos) */
+async function checkUpdate(){
+  if(location.protocol!=='https:') return;
+  try{
+    const r=await fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'});
+    if(!r.ok) return;
+    const m=(await r.text()).match(/APP_VERSION='([^']+)'/);
+    if(!m||m[1]===APP_VERSION) return;
+    if(sessionStorage.getItem('gt-upd')===m[1]) return; // evita bucles si el servidor aún da la vieja
+    if(ui.timer||isField(document.activeElement)) return; // no recargar a mitad de un descanso o escribiendo
+    sessionStorage.setItem('gt-upd',m[1]);
+    location.replace(location.pathname+'?v='+encodeURIComponent(m[1]));
+  }catch(e){}
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden) checkUpdate();});
+
 /* ===================== ARRANQUE ===================== */
 setInterval(()=>{
   if(ui.timer){
@@ -778,6 +796,7 @@ load();
 ui.calM=new Date();ui.calM.setDate(1);
 render();
 checkReminders();
+checkUpdate();
 navigator.storage?.persist?.();
 </script>
 </body>
