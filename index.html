@@ -8,12 +8,15 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#121212">
 <title>Gym Tracker</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
 <style>
 :root{--bg:#f3f3f1;--card:#fff;--ink:#121212;--muted:#737373;--line:#e4e4e1;--or:#ff6a13;--or-d:#e25500;--or-soft:#fff1e8;--ok:#16a34a;--nav:#121212}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
 html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-body{height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden;padding:env(safe-area-inset-top) 0 0}
+html{background:var(--nav)}
+body{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden;padding:env(safe-area-inset-top) 0 0}
 #app{flex:1;min-height:0;width:100%;max-width:560px;margin:0 auto;padding:16px 16px 24px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 h1{font-size:28px;margin:4px 0 6px;letter-spacing:-.5px}
 h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:22px 0 10px}
@@ -753,6 +756,13 @@ document.addEventListener('change',e=>{
   if(el.id==='progSel'){ui.progEx=el.value;render();}
   if(el.id==='importFile'){importFile(el.files[0]);el.value='';}
 });
+
+/* iOS: al cerrar el teclado la página puede quedarse desplazada y dejar un hueco abajo */
+const isField=el=>!!el&&/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName);
+const resetScroll=()=>{if(window.scrollY||window.scrollX) window.scrollTo(0,0);};
+document.addEventListener('focusout',()=>setTimeout(()=>{if(!isField(document.activeElement)) resetScroll();},60));
+window.visualViewport?.addEventListener('resize',()=>{if(!isField(document.activeElement)) resetScroll();});
+window.addEventListener('scroll',()=>{if(!isField(document.activeElement)) resetScroll();});
 
 /* ===================== ARRANQUE ===================== */
 setInterval(()=>{
